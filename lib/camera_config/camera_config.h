@@ -1,0 +1,9 @@
+#ifndef CAMERA_CONFIG_H
+#define CAMERA_CONFIG_H
+
+// Camera frame dimensions (QVGA resolution)
+#define EI_CAMERA_RAW_FRAME_BUFFER_COLS 320
+#define EI_CAMERA_RAW_FRAME_BUFFER_ROWS 240
+#define EI_CAMERA_FRAME_BYTE_SIZE 3
+
+#endif // CAMERA_CONFIG_H

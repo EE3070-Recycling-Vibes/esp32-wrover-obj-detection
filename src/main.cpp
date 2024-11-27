@@ -30,6 +30,8 @@
 
 #include "esp_camera.h"
 
+#include <ESP32QRCodeReader.h> 
+
 // Select camera model - find more camera models in camera_pins.h file here
 // https://github.com/espressif/arduino-esp32/blob/master/libraries/ESP32/examples/Camera/CameraWebServer/camera_pins.h
 
@@ -101,11 +103,18 @@ static camera_config_t camera_config = {
 	.grab_mode = CAMERA_GRAB_WHEN_EMPTY,
 };
 
+// QR Code Reader setup
+ESP32QRCodeReader reader(CAMERA_MODEL_WROVER_KIT);
+
+// Control flag for QR code scanning
+volatile bool startScanning = false;
+
 /* Function definitions ------------------------------------------------------- */
 bool ei_camera_init(void);
 void ei_camera_deinit(void);
 bool ei_camera_capture(uint32_t img_width, uint32_t img_height, uint8_t *out_buf);
 static int ei_camera_get_data(size_t offset, size_t length, float *out_ptr);
+void onQrCodeTask(void *pvParameters);
 
 /* Serial communication ports ---------------------------------------------- */
 #define RXp2 14
@@ -156,12 +165,12 @@ void loop() {
 			Serial.println(")");
 		}
 		Serial.print("Complete message: ");
-		Serial.println(message);
         message.trim();
 		Serial.println(message);
-		if (message == "Activate") {
+		if (message == "detect") {
 			// Proceed to capture image and run inference
-            ei_printf("message == 'Activate'\n");
+            // ei_printf("message == 'Activate'\n");
+            delay(1000);
 			snapshot_buf = (uint8_t*)malloc(EI_CAMERA_RAW_FRAME_BUFFER_COLS * EI_CAMERA_RAW_FRAME_BUFFER_ROWS * EI_CAMERA_FRAME_BYTE_SIZE);
 
 			// Check if allocation was successful
@@ -272,6 +281,10 @@ void loop() {
 
 			#endif
 			free(snapshot_buf);
+		}
+		if (message == "scan") {
+			// Start scanning for QR codes
+			startScanning = true;
 		}
 	}
 
@@ -415,3 +428,4 @@ static int ei_camera_get_data(size_t offset, size_t length, float *out_ptr)
 #if !defined(EI_CLASSIFIER_SENSOR) || EI_CLASSIFIER_SENSOR != EI_CLASSIFIER_SENSOR_CAMERA
 	#error "Invalid model for current sensor"
 #endif
+
